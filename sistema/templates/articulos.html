@@ -1,0 +1,120 @@
+{%extends "layout.html"%}
+
+{% block body %}
+<div align=center  class="flex-container" style="font-size:20px">
+
+    <div class="flex-item-left" align=center  >
+
+        <button class="btn btn-success" onclick="javascript:window.location='inicio'">VOLVER AL INICIO</button>
+        {% if editarlo %}
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <button class="btn btn-success" onclick="javascript:window.location='articulos'">AGREGAR NUEVO ARTICULO</button>
+        {% endif %}
+        <br>
+        <form method="post" id="miform" action="{% url 'articulos' %}">
+            {% csrf_token %}
+            <input type=hidden id="accion" name="accion" value="">
+            <input type=hidden id="idart" name="idart" value="0">
+
+            {% if editarlo %}
+                EDITAR ARTICULO:<br>
+            {% else %}
+                NUEVO ARTICULO:<br>
+            {% endif %}
+            <table border=1 width=100% style="max-width:600px">
+                {{form.as_table}}
+            </table>
+            <br>
+            {% if editarlo %}
+                <button type=button class="btn btn-success"  onclick="jaVascript:domodificar('MODIFICAR','{{miarticulo.id}}');">GUARDAR</button>&nbsp;&nbsp;
+            {% else %}
+                <button  type=button class="btn btn-success" onclick="javascript:domodificar('AGREGAR','0');" >AGREGAR ARTICULO</button>
+            {% endif %}
+
+            <br><br>
+            
+        </form>
+
+        <script language="javascript">
+            function doeliminar(cual){
+                Swal.fire({
+                        title: 'Seguro de ELIMINAR este articulo?',
+                        text: "",
+                        icon: 'danger',
+                        showCancelButton: true,
+                        confirmButtonColor:'#d33',
+                        cancelButtonColor:  '#3085d6',
+                        confirmButtonText: "ELIMINAR"
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                doaccion("ELIMINAR",cual);
+                            }
+                        })
+            }
+
+            function domodificar(que,cual){
+                let valido=true;
+                let mensaje="";
+                if(document.querySelector("#id_descripcion").value==""){                
+                    valido=false;
+                    mensaje="Debe especificar la descripcion del articulo";
+                }else{
+                    if(document.querySelector("#id_tipo").value==""){                
+                        valido=false;
+                        mensaje="Debe especificar el tipo del articulo";
+                    }else{
+                        if(document.querySelector("#id_precio").value==""){                
+                            valido=false;
+                            mensaje="Debe especificar el precio del articulo";
+                        }
+                    }
+                }
+
+                if(valido){                
+                    Swal.fire({
+                            title: 'Seguro de ' + que + ' este articulo?',
+                            text: "",
+                            icon: 'danger',
+                            showCancelButton: true,
+                            confirmButtonColor:'#3085d6',
+                            cancelButtonColor:  '#d33',
+                            confirmButtonText: que
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    doaccion(que,cual);
+                                }
+                            })
+                }else{
+                    Swal.fire({
+                        title:mensaje,
+                        icon:'error'
+                    })
+                }
+            }
+
+            function doaccion(que,cual){
+                document.querySelector("#accion").value=que;
+                document.querySelector("#idart").value =cual;
+                document.querySelector("#miform").submit();
+            }
+        </script>
+    </div>
+    <div class="flex-item-right" style="font-size:14px;text-align:left;">
+        <div class=container>
+            {%for articulo in misarticulos%}
+                <div class="row highlight" style="padding:3px">
+                    <div class="col-sm-6" style="padding:10px">
+                        {{articulo.descripcion}} &nbsp;{{articulo.tipo.rubro}}&nbsp;&nbsp;
+                    </div>
+                    <div class="col-sm-2" style="padding:10px">
+                        <button type=button  class="btn btn-warning" onclick="javascript:doaccion('EDITAR',  '{{articulo.id}}');">EDITAR</button>
+                    </div>
+                    <div class="col-sm-2" style="padding:10px">
+                        <button type=button  class="btn btn-danger" onclick="jaVascript:doeliminar('{{articulo.id}}');">ELIMINAR</button>
+                    </div>
+                </div>
+            {%endfor%}
+        </div>
+    </div>
+
+{% endblock %}

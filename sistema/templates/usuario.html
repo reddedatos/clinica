@@ -1,0 +1,54 @@
+{%extends "layout.html"%}
+{%block body%}
+    <script language=javascript>
+        function doedit(cual,num){
+            
+            cual.style.textDecoration=(cual.style.textDecoration=='line-through')?'':'line-through';
+            cual.style.backgroundColor ="";
+        }
+    </script>
+    <div class=contenedor_menu>
+        <div>
+            Turnos de hoy
+            <ul>
+            {% for turno in turnos%}
+                <li class="editar_turno">
+                    <div style="width:100%;text-align:left;font-size:20px;cursor:pointer" onclick="javascript:doedit(this,1);" >
+                    <font >{{turno.hora}} {{turno.paciente}}</font>
+                    {% if False%}
+                    <img align="right" style="width:30px;height:30px;vertical-align: middle" src="static/pencil.svg" >
+                    {% endif%}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div>Pedidos sin entregar
+            <ul>
+            {% for pedido in pedidos%}
+                <li>{{pedido}}</li>
+            {% endfor %}
+            </ul>
+        </div>            
+        <div>Acciones<br>
+            {% if usuarioSistema.es_secretaria or usuarioSistema.es_profesional or usuarioSistema.es_gerencia %}
+            <button class="btn btn-success btn-block" onclick="javascript:window.location='/turnos';">Turnos</button>
+            {% endif %}
+            {% if usuarioSistema.es_secretaria or usuarioSistema.es_profesional or usuarioSistema.es_gerencia %}
+            <button class="btn btn-success btn-block" onclick="javascript:window.location='/pacientes';">Pacientes</button>
+            {% endif %}
+            {% if usuarioSistema.es_ventas or usuarioSistema.es_gerencia %}
+            <button class="btn btn-success btn-block" onclick="javascript:window.location='/articulos';">Articulos</button>
+            {% endif %}
+            {% if usuarioSistema.es_ventas or usuarioSistema.es_gerencia or usuarioSistema.es_taller %}
+            <button class="btn btn-success btn-block" onclick="javascript:window.location='/pedidos';">Pedidos</button>
+            {% endif %}
+            {% if usuarioSistema.es_gerencia %}
+            <button class="btn btn-success btn-block" onclick="javascript:window.location='/reportes';">Reportes</button>
+            {% endif %}
+            
+
+        </div>
+    </div>
+    
+{%endblock%}

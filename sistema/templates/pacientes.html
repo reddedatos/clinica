@@ -1,0 +1,128 @@
+{%extends "layout.html"%}
+
+{% block body %}
+<div align=center  class="flex-container" style="font-size:20px">
+
+    <div class="flex-item-left" align=center  >
+
+        <button class="btn btn-success" onclick="javascript:window.location='inicio'">VOLVER AL INICIO</button>
+        {% if editarlo %}
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <button class="btn btn-success" {% if esprof %} style="display:none" {% endif %} onclick="javascript:window.location='pacientes'">AGREGAR NUEVO PACIENTE</button>
+        {% endif %}
+        <br>
+        <form method="post" id="miform" action="{% url 'pacientes' %}">
+            {% csrf_token %}
+            <input type=hidden id="accion" name="accion" value="">
+            <input type=hidden id="idturno" name="idturno" value="0">
+            <input type=hidden id="id" name="id" value="0">
+
+            <div {% if esprof %} style="display:none" {% endif %} >
+                {% if editarlo %}
+                    EDITAR PACIENTE:<br>
+                    <input type=text name=nombre id=nombre value="{{mipaciente.nombre}}"><br>
+                    <button type=button class="btn btn-success" onclick="javascript:domodificar('MODIFICAR','{{mipaciente.id}}');">GUARDAR CAMBIOS</button>
+                    <br>
+                    <div style="text-align:left">
+                        {% for turno in historial %}
+                        <hr style="border:1px solid gray">
+                        <button type=button onclick="javascript:dover({{turno.id}})" class="btn btn-warning">VER</button> &nbsp;{{turno.fecha}} {{turno.hora}}<br>{{turno.detalle}}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                        NUEVO PACIENTE:<br>
+                        <input type=text name=nombre id=nombre ><br>
+                        <button type=button class="btn btn-success" onclick="javascript:domodificar('AGREGAR','0');" >AGREGAR PACIENTE</button>
+                {% endif %}
+            </div>
+            {% if esprof %}
+            PACIENTE: {{mipaciente.nombre}}
+            <div style="text-align:left">
+                {% for turno in historial %}
+                <hr style="border:1px solid gray">
+                <button type=button onclick="javascript:dover({{turno.id}})" class="btn btn-warning">VER</button> &nbsp;{{turno.fecha}} {{turno.hora}}<br>{{turno.detalle}}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+        </form>
+
+        <script language="javascript">
+            function doeliminar(cual){
+                Swal.fire({
+                        title: 'Seguro de ELIMINAR este paciente?',
+                        text: "",
+                        icon: 'danger',
+                        showCancelButton: true,
+                        confirmButtonColor:'#d33',
+                        cancelButtonColor:  '#3085d6',
+                        confirmButtonText: "ELIMINAR"
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                doaccion("ELIMINAR",cual);
+                            }
+                        })
+            }
+
+            function domodificar(que,cual){
+                if(document.querySelector("#nombre").value!=""){                
+                    Swal.fire({
+                            title: 'Seguro de ' + que + ' este paciente?',
+                            text: "",
+                            icon: 'danger',
+                            showCancelButton: true,
+                            confirmButtonColor:'#3085d6',
+                            cancelButtonColor:  '#d33',
+                            confirmButtonText: que
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    doaccion(que,cual);
+                                }
+                            })
+                }else{
+                    Swal.fire({
+                        title:"Debe especificar el nombre del paciente",
+                        icon:'error'
+                    })
+                }
+            }
+
+            function doaccion(que,cual){
+                document.querySelector("#accion").value=que
+                document.querySelector("#id").value    =cual;
+                document.querySelector("#miform").submit();
+            }
+                
+            function dover(cual){
+                document.querySelector("#accion").value  = "EDITAR";
+                document.querySelector("#idturno").value = cual;
+                document.querySelector("#miform").action = "{% url 'turnos' %}";
+                document.querySelector("#miform").submit();
+
+            }
+
+            function doguardar(){
+            }
+
+        </script>
+    </div>
+    <div class="flex-item-right" style="font-size:14px;text-align:left;">
+        <div class=container>
+            {%for paciente in mispacientes%}
+                <div class="row highlight" style="padding:3px">
+                    <div class="col-sm-6" style="padding:10px">
+                        {{paciente.nombre}} &nbsp;
+                    </div>
+                    <div class="col-sm-2" style="padding:10px">
+                        <button class="btn btn-warning" onclick="javascript:doaccion('EDITAR',  '{{paciente.id}}');">EDITAR</button>
+                    </div>
+                    <div class="col-sm-2" style="padding:10px;{% if esprof %} display:none {% endif %}">
+                        <button class="btn btn-danger" onclick="jaVascript:doeliminar('{{paciente.id}}');">ELIMINAR</button>
+                    </div>
+                </div>
+            {%endfor%}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

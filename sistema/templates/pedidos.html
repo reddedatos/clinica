@@ -1,0 +1,341 @@
+{%extends "layout.html"%}
+
+{% block body %}
+<div align=center  class="flex-container">
+
+    <div class="flex-item-left" align=center  >
+
+        <button class="btn btn-success" onclick="javascript:window.location='inicio'">VOLVER AL INICIO</button>
+        {% if pedidoeditar %}
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <button class="btn btn-success" style="{% if estaller %} display:none {% endif %}" onclick="javascript:window.location='pedidos'">AGREGAR NUEVO PEDIDO</button>
+            <br>
+            EDITAR PEDIDO:
+            <br>
+            <div style=" {% if not estaller %} display:none {% endif %} ">
+            Paciente:{{pedidoeditar.paciente.nombre}}<br>
+            Fecha:{{fecha}}<br>
+            </div>
+        {% else %}
+            <div style=" {% if estaller %} display:none {% endif %} ">
+            <br>
+            NUEVO PEDIDO:
+            <br>
+            </div>
+        {% endif %}        
+        <form method="post" id="pedido" class="form-inline" action="{% url 'pedidosAgregar' %}">
+            
+            {% csrf_token %}
+            
+            <input type=hidden id="accion" name="accion" value="">
+            <input type=hidden id="id"  name="id"  value="0">
+            
+            {% for arti in articulos%}
+                <input type=hidden name=precioinicial_{{arti.id}}      id=precioinicial_{{arti.id}}      value="{{arti.precio}}">
+                <input type=hidden name=descripcioninicial_{{arti.id}} id=descripcioninicial_{{arti.id}} value="{{arti.descripcion}}">
+                <input type=hidden name=tipoinicial_{{arti.id}}        id=tipoinicial_{{arti.id}}        value="{{arti.tipo.rubro}}">
+            {% endfor %}
+
+            
+            <div class=container style="text-align:left;font-size:16px;width:100%;max-width:800px;">
+                <div class="form-group" {% if estaller %}style="display:none"{% endif %}>
+                    <div style="width:100px"><label for="paciente">Paciente</label></div>
+                    <select name=paciente id=paciente autofocus>
+                        {% if pedidoeditar %}
+                            <option selected value="{{pedidoeditar.paciente.id}}">{{pedidoeditar.paciente.nombre}}</option>
+                        {% endif %}
+                                {% for pac in pacientes%}
+                            <option value="{{pac.id}}">{{pac.nombre}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group" {% if estaller %}style="display:none"{% endif %}>
+                    <div style="width:100px"><label for="fecha">Fecha</label></div>
+                    <input type=text size=8 value="{{fecha}}" name=fecha>&nbsp;&nbsp;&nbsp;
+                    <select name=formapago id=formapago place-holder="Forma de pago">
+                        <option value=""></option>
+                        {% if pedidoeditar %}
+                            <option selected value="{{pedidoeditar.formapago}}">{{pedidoeditar.formapago}}</option>
+                        {% endif %}
+                        <option value="EFECTIVO">EFECTIVO</option>
+                        <option value="DEBITO">DEBITO</option>
+                        <option value="CREDITO">CREDITO</option>
+                        <option value="APP">APP</option>                        
+                    </select>
+                </div>
+                <div {% if estaller %}style="display:none"{% endif %}>
+                <div><hr style="border:2px solid rgb(161, 161, 243)"></div>
+                <div class="form-group">
+                    <div style="width:100px"><label for="cantidad_0">Cantidad</label></div>
+                    <input type=text size=5 name=cantidad_0 id=cantidad_0 value="1">
+                </div>
+                <div class="form-group">
+                    <div style="width:100px"><label for="articulo_0">Articulo</label></div>
+                    <select name=articulo_0 id=articulo_0 onchange="javascript:dochange()">
+                        {% for arti in articulos%}
+                            <option value="{{arti.id}}">{{arti.descripcion}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id=opcionales>
+                    <div class="form-group">
+                        <div style="width:100px"><label for="opc1_0">OPC1</label></div>
+                        <select name=opc1_0 id=opc1_0>
+                            <option value=""></option>
+                            <option value="LEJOS">Lejos</option>
+                            <option value="CERCA">Cerca</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <div style="width:100px"><label for="opc2_0">OPC1</label></div>
+                        <select name=opc2_0 id=opc2_0>
+                            <option value=""></option>
+                            <option value="IZQ">Izquierda</option>
+                            <option value="DER">Derecha</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <div style="width:100px"><label for=opc3_0> Armazon</label></div>
+                        <input type="checkbox" name=opc3_0 id=opc3_0>
+                    </div>
+                </div>                
+                <div class="form-group">
+                    <div style="width:100px"><label for="precio_0">Precio</label></div>
+                    <input type=text size=5 name=precio_0 id=precio_0>&nbsp;
+                    
+                </div>
+                <div class="form-group" >
+                    <div style="width:100px">&nbsp;</div>
+                    <button type="button" onclick="javascrip:doadd()" class="btn btn-danger" style="margin-top:15px">Agregar item</button>
+                </div>
+                <div><hr style="border:2px solid rgb(161, 161, 243)"></div>
+                </div>
+
+            </div>
+            <div id=contenido class="container" style="font-size:18px;max-width:800px;"></div>
+            
+            <div style="margin-top:30px; {% if estaller %} display:none {% endif %}" class="w-100"  >TOTAL:<span id=total>0.00</span></div>
+            <br><br>
+            <input type=hidden name=canti id=canti value=0>
+            <input type=hidden name=valortotal id=valortotal value=0>
+            {%if pedidoeditar %}
+            <div class="w-100"><button type=button onclick="javascript:domodificar('MODIFICAR','{{pedidoeditar.id}}')" class="btn btn-success">GUARDAR MODIFICACION</button></div>
+            {%else%}
+            <div class="w-100" style=" {% if estaller %} display:none {% endif %} " ><button type=button onclick="javascript:doguardar()" class="btn btn-success">GENERAR NUEVO PEDIDO</button></div>
+            {%endif%}
+        </form>
+    </div>
+    <div class="flex-item-right" style="font-size:14px;text-align:left;">
+        <div class=container>
+        {% for xp in xpeds %}
+        <div class="row highlight" style="padding:3px">
+            <div class="col-sm-6" style="padding:10px">
+        {{xp.pedido}} ({{xp.pedido.id}})<br>
+            {% for xi in xp.items %}
+                {{xi.datos.articulo.descripcion}} ({{xi.datos.estado}})
+                {% if xi.eslente %}
+                    <br>{{xi.datos.opcion1}} / {{xi.datos.opcion2}} / {% if xi.armazon %} (con armazon) {% endif %}
+                {% endif %}
+                <br>
+            {% endfor %}
+            </div>
+            <div class="col-sm-2" style="padding:10px">
+                <button class="btn btn-warning" onclick="javascript:doaccion('EDITAR',  '{{xp.pedido.id}}');">EDITAR</button>
+            </div>
+            <div class="col-sm-2" style="padding:10px">
+                <button class="btn btn-danger" style=" {% if estaller %} display:none {% endif %} " onclick="jaVascript:doeliminar('{{xp.pedido.id}}');">ELIMINAR</button>
+            </div>
+        </div>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script language="javascript">
+
+        var indice=0;
+        var cantidaditems=0;
+
+        function doguardar(){
+            if(cantidaditems>0){
+                Swal.fire({
+                    title: 'Generar este pedido?',
+                    text: "",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'GENERAR'
+                    }).then((result) => {
+                    if (result.isConfirmed) {
+                        /*Swal.fire(
+                        'Deleted!',
+                        'Your file has been deleted.',
+                        'success'
+                        )*/
+                        document.querySelector("#pedido").submit();
+                    }
+                    })
+        }else{
+            Swal.fire({
+                title:"No hay items en el pedido",
+                icon:'error'
+            })
+        }
+
+        }
+        function dochange(){
+            document.querySelector("#precio_0").value=document.querySelector("#precioinicial_" + document.querySelector("#articulo_0").value).value;
+            rubro=document.querySelector("#tipoinicial_" + document.querySelector("#articulo_0").value).value;
+            if(rubro=="LENTE"){
+                document.querySelector("#opcionales").style.display="block";
+            }else{
+                document.querySelector("#opc1_0").value="";
+                document.querySelector("#opc2_0").value="";
+                document.querySelector("#opc3_0").checked=false;
+                document.querySelector("#opcionales").style.display="none";
+            }
+        }
+
+
+        function doadd(){
+            icanti  = document.querySelector("#cantidad_0").value;
+            iart    = document.querySelector("#articulo_0").value;
+            iopc1   = document.querySelector("#opc1_0").value;
+            iopc2   = document.querySelector("#opc2_0").value;
+            iestado = "Pendiente";
+            if(document.querySelector("#opc3_0").checked){
+                iopc3   = "X";
+            }else{
+                iopc3   = "";
+            }
+            iprecio = document.querySelector("#precio_0").value;
+
+            idesc   = document.querySelector("#descripcioninicial_" + iart).value;
+
+            idip    = "-1"
+            
+            doadditem(icanti,iart,iopc1,iopc2,iopc3,iprecio,idesc,idip,iestado);
+        }
+
+        function doadditem(icanti,iart,iopc1,iopc2,iopc3,iprecio,idesc,idip,iestado){
+            indice++;
+            cantidaditems++;
+
+            isubtot = cdbl(okdec(icanti))*cdbl(okdec(iprecio));
+            
+            conte=document.querySelector("#contenido").innerHTML;
+            conte+="<div class=row id=fila_" + indice + ">";
+                conte+="<input type=hidden id=activo_" + indice + " name=activo_" + indice + " value='X'>";
+                conte+="<input type=hidden id=idip_"   + indice + " name=idip_"   + indice + " value='" + idip + "'>";
+                conte+="<div class=col>" + icanti  + "<input type=hidden name=cantidad_" + indice + " id=cantidad_" + indice + " value='" + icanti  + "'></div>";
+                conte+="<div class=col style='white-space:nowrap'>" + idesc   + "<input type=hidden name=articulo_" + indice + " id=articulo_" + indice + " value='" + iart    + "'></div>";
+                conte+="<div class=col>" + iopc1   + "<input type=hidden name=opc1_"     + indice + " id=opc1_"     + indice + " value='" + iopc1   + "'></div>";
+                conte+="<div class=col>" + iopc2   + "<input type=hidden name=opc2_"     + indice + " id=opc2_"     + indice + " value='" + iopc2   + "'></div>";
+                conte+="<div class=col>" + iopc3   + "<input type=hidden name=opc3_"     + indice + " id=opc3_"     + indice + " value='" + iopc3   + "'></div>";
+                conte+="<div class=col><select name=estado_"     + indice + " id=estado_"     + indice + " >";
+                conte+="<option " + (iestado=='Pendiente'?'selected':'')  + " value='Pendiente'>Pendiente</option>";
+                conte+="<option " + (iestado=='Pedido'?'selected':'')     + " value='Pedido'>Pedido</option>";
+                conte+="<option " + (iestado=='Taller'?'selected':'')     + " value='Taller'>Taller</option>";
+                conte+="<option " + (iestado=='Finalizado'?'selected':'') + " value='Finalizado'>Finalizado</option>";
+                conte+="</select></div>";
+                conte+="<div class=col {% if estaller %} style='display:none' {% endif %} >" + iprecio + "<input type=hidden name=precio_"   + indice + " id=precio_"   + indice + " value='" + iprecio + "'></div>";
+                conte+="<div class=col {% if estaller %} style='display:none' {% endif %} >" + isubtot + "</div>";
+                conte+="<div class=col {% if estaller %} style='display:none' {% endif %} ><button type=button class='btn btn-warning' onclick='javascript:doquitar(" + indice + ")'>Quitar</button></div>";
+                conte+="";
+            conte+="</div>";
+
+            document.querySelector("#contenido").innerHTML = conte;
+
+            document.querySelector("#total").innerHTML = docalc();
+            
+            document.querySelector("#canti").value = indice;
+
+            
+        }
+
+        function doaccion(que,cual){
+            document.querySelector("#accion").value=que
+            document.querySelector("#id").value    =cual;
+            if(que!="ELIMINAR" && que!="MODIFICAR"){
+                document.querySelector("#pedido").action="{% url 'pedidos' %}";
+            };
+            document.querySelector("#pedido").submit();
+        }
+
+        function doeliminar(cual){
+            Swal.fire({
+                    title: 'Seguro de ELIMINAR este pedido?',
+                    text: "",
+                    icon: 'danger',
+                    showCancelButton: true,
+                    confirmButtonColor:'#d33',
+                    cancelButtonColor:  '#3085d6',
+                    confirmButtonText: "ELIMINAR"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            doaccion("ELIMINAR",cual);
+                        }
+                    })
+        }
+
+        function domodificar(que,cual){
+                let valido=true;
+                let mensaje="";
+
+                valido=true;
+
+                if(valido){                
+                    Swal.fire({
+                            title: 'Seguro de ' + que + ' este pedido?',
+                            text: "",
+                            icon: 'danger',
+                            showCancelButton: true,
+                            confirmButtonColor:'#3085d6',
+                            cancelButtonColor:  '#d33',
+                            confirmButtonText: que
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    doaccion(que,cual);
+                                }
+                            })
+                }else{
+                    Swal.fire({
+                        title:mensaje,
+                        icon:'error'
+                    })
+                }
+            }
+
+        function doquitar(cual){
+            cantidaditems--;
+            document.querySelector("#fila_"    + cual).style.display = "none";
+            document.querySelector("#activo_" + cual).value = "";
+            document.querySelector("#total").innerHTML      = docalc();
+        }
+
+        function docalc(){
+            total=0
+            for(i=1;i<=indice;i++){
+                if(document.querySelector("#activo_" + i).value=="X"){
+                    total=cdbl(okdec(total))+cdbl(okdec(document.querySelector("#cantidad_" + i).value+".00"))*cdbl(okdec(document.querySelector("#precio_" + i).value));
+                }
+            }
+            document.querySelector("#valortotal").value=total;
+            return(Math.round(total * 100) / 100);
+
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            dochange();
+            
+            {% if pedidoeditar %}
+                
+                {% for pitem in itemseditar%}
+                    doadditem('{{pitem.datos.cantidad}}','{{pitem.datos.articulo.id}}','{{pitem.datos.opcion1}}','{{pitem.datos.opcion2}}','{{pitem.datos.opcion3}}','{{pitem.datos.precio}}','{{pitem.datos.articulo.descripcion}}','{{pitem.datos.id}}','{{pitem.datos.estado}}');
+                {% endfor %}
+
+            {% endif %}
+        });
+</script>
+{% endblock %}

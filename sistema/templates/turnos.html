@@ -1,0 +1,221 @@
+{%extends "layout.html"%}
+{%block body%}
+
+<div align=center  class="flex-container">
+
+    <div class="flex-item-left" align=center  >
+
+        <button class="btn btn-success" onclick="javascript:window.location='inicio'">VOLVER AL INICIO</button>
+
+        <div id=mes1 style="width:100%;max-width:500px;text-align:center;vertical-align:middle" {% if agregarTurno %}class="ocultarchico"{% endif %} ></div>
+        
+        <div id=mes2 style="width:100%;max-width:500px;text-align:center;vertical-align:middle" class="ocultarchico"></div>
+        
+        <div id=mes3 style="width:100%;max-width:500px;text-align:center;vertical-align:middle" class="ocultarchico"></div>
+
+    </div>
+
+    {% if diadesde%}
+        <div class="flex-item-right" >            
+            <div id=horas {% if agregarTurno %}class="ocultarchico"{% endif %} ><br>
+                TURNOS DE FECHA {{diadesde}}/{{mesdesde}}/{{aniodesde}}
+                <br>&nbsp;
+                <ul style="font-family: Tahoma;font-size:20px;text-align: left;display:none">
+                {% for turno in turnos%}
+                    <li>{{turno.hora}} {{turno.profesional}} {{turno.paciente}} </li>
+                {%endfor%}
+                </ul>
+
+                <div class=container style="text-align:left">
+                    {% for prof in turnosdados%}
+                        <h4>{{prof.profesional}}</h4>
+                        {% for tt in prof.turnos%}
+                        <div class="row highlight" style="padding:3px">
+                            <div class="col-sm-6" style="padding:10px;text-align:left;font-size:20px">
+                                {{tt.hora}} {{tt.paciente}} 
+                            </div>
+                            <div class="col-sm-2" style="padding:10px">
+                                <button class="btn btn-warning" onclick="javascript:doaccion('EDITAR','{{tt.id}}')">Editar</button>
+                            </div>
+                            <div class="col-sm-2" style="padding:10px">
+                                <button class="btn btn-danger"  onclick="javascript:doeliminar({{tt.id}})">Eliminar</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <hr style="border:1px solid whitesmoke">
+                    {%endfor%}
+                    </div>
+                    <form action="{% url 'turnos' %}" method="post" id=miform name=miform>
+                        {% csrf_token %}
+                        <input type=hidden name=accion  id=accion  value="">
+                        <input type=hidden name=idturno id=idturno value="{{ idturno }}">
+                        <input type=hidden name=fecha   id=fecha   value="{{ fecha }}">
+                    </form>
+
+            </div>
+
+            <div style="text-align:center;width:100%">
+                <div style="max-width:500px;text-align:left;{% if sinagregar %}display:none{% endif %}" {% if agregarTurno %}class="ocultarchico"{% endif %}>
+                    <form method=post action="{% url 'turnos' %}?lafecha={{fecha}}"  >
+                        {% csrf_token %}
+                        <input type=hidden name=accion  id=accion  value="">
+                        <input type=hidden name=idturno id=idturno value="{{ idturno }}">
+                        <input type=hidden name=fecha id=fecha value="{{ fecha }}">
+                        <table border=0 width=100% >
+                            {{ formprofesional.as_table }}
+                            <tr>
+                                <td></td>
+                                <td align=left>
+                                        <button type=submit class="btn btn-light">Agregar turno</button>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </form>
+                </div>
+                <br>
+                {% if agregarTurno or editar %}
+                    <form action="{% url 'turnos' %}" method="post" id=frm name=frm>
+                        {% csrf_token %}
+                        <input type=hidden name=accion  id=accion  value="">
+                        <input type=hidden name=idturno id=idturno value="{{ idturno }}">
+                            <table class=tablaform cellpadding=10px >
+                            <tr>
+                                <th colspan=2>
+                                    {% if agregarTurno %}
+                                    NUEVO TURNO<br>
+                                    {% endif %}
+                                    FECHA: {{fecha}}<br>
+                                    PROFESIONAL: {{nombreprofesional}}
+                                </th>
+                            </tr>
+                            {{ form.as_table }}
+                            <tr>
+                                <td></td>
+                                <td>
+                                    <br>
+                                    <button type="button" onclick="javascript:doguardar()" class="btn btn-light">
+                                        Guardar
+                                    </button>
+
+                                    {% if False %}
+                                    &nbsp;&nbsp;&nbsp;&nbsp;
+
+                                    <button class="btn btn-light" onclick="javascript:document.querySelector('#id_paciente').value='0';window.location='/turnos'">
+                                        Volver
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                        <br>
+                        <br>
+                        <br>
+                    </form>
+                {% endif %}
+            </div>
+            
+        </div>
+    {%endif%}
+
+</div>
+
+<script language=javascript>
+    var txtmes=Array('','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre');
+    function mostrarmes(cual,mes,anio){
+
+        var d = new Date(anio,mes-1,1);
+        a = d.getFullYear() + "-" + d.getMonth();
+        b=d.getDay();
+        mymes=mes;
+
+        ultimodia=day(dateadd("d",-1,dateadd("m",1,"01/"+mes+"/"+anio)));
+
+        maxdias=ultimodia;
+
+        fant =dateadd("m",-1,"01/"+mes+"/"+anio)
+        fpost=dateadd("m",1,"01/"+mes+"/"+anio)
+
+        htmlpicker="";
+        htmlpicker+="<br><table border=2 width=100% style='text-align:center;font-family:Tahoma;font-size:22px' >";
+        if(cual==1){
+            htmlpicker+="<tr><td colspan=7 ><div style='display:flex;justify-content: space-between;'>";
+            htmlpicker+="<div style='float:left'><button class='btn btn-light' onclick=\"javascript:window.location=\'/turnos?fecha=" + fant + "\';\"'>&lt;&lt;</button></div>";
+            htmlpicker+="<div style='float:left'>" + anio + " - " + txtmes[mes] + "</div>";
+            htmlpicker+="<div style='float:left'><button class='btn btn-light' onclick=\"javascript:window.location=\'/turnos?fecha=" + fpost + "\';\"'>&gt;&gt;</button></div>";
+            htmlpicker+="</div></td></tr>";
+        }else{
+            htmlpicker+="<tr><td colspan=7>" + anio + " - " + txtmes[mes] + "</td></tr>";
+        }
+        htmlpicker+="<tr><td width=12% >DO</td><td width=12% >LU</td><td width=12% >MA</td><td width=12% >MI</td><td width=12% >JU</td><td width=12% >VI</td><td width=12% >SA</td></tr>";
+        mydia=1;
+        for(j=1;j<=6;j++){
+            htmlpicker+="<tr>";
+            for(k=1;k<=7;k++){
+                if((j==1 && mydia==1 && k<=b) || (mydia>maxdias)){
+                    htmlpicker+="<td>&nbsp;</td>";
+                }else{
+                    htmlpicker+="<td class=xdiaturno style=\"cursor:pointer\" height=40px onclick=\"javascript:selectpicker('"+cual+"','" + anio + "','" + mes + "','" + mydia + "');\" >"
+                    htmlpicker+="<button class='btn btn-light btn-block'>";
+                    htmlpicker+=mydia;
+                    htmlpicker+="</button>";
+                    htmlpicker+="</td>";
+                    mydia++;
+                }
+            }
+            htmlpicker+="</tr>";
+            if(mydia>maxdias){
+                j=99;
+            }
+        }
+        document.getElementById('mes'+cual).innerHTML=htmlpicker;
+    }
+
+    function selectpicker(cual,anio,mes,dia){
+        window.location='/turnos?fecha='+dia+'/'+mes+'/'+anio;
+    }
+
+    function doguardar(){
+        if(document.querySelector("#id_detalle")){
+            if(document.querySelector("#id_detalle").value!=""){
+                document.querySelector("#id_estado").selectedIndex=2;
+            };
+        };
+        document.querySelector("#frm").submit();
+    }
+
+    function doeliminar(cual){
+        Swal.fire({
+                title: 'Seguro de ELIMINAR este turno?'+cual,
+                text: "",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor:'#d33',
+                cancelButtonColor:  '#3085d6',
+                confirmButtonText: "ELIMINAR"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        doaccion("ELIMINAR",cual);
+                    }
+                })
+    }    
+
+    function doaccion(que,cual){
+        document.querySelector("#accion").value  = que
+        document.querySelector("#idturno").value = cual;
+        document.querySelector("#miform").submit();
+    }
+
+    f1="01/{{mesdesde}}/{{aniodesde}}";
+    f2=dateadd("m",1,f1);
+    f3=dateadd("m",2,f1);
+
+    fechaactual="{{diadesde}}/{{mesdesde}}/{{aniodesde}}";
+    
+    mostrarmes(1,month(f1),year(f1));
+    mostrarmes(2,month(f2),year(f2));
+    mostrarmes(3,month(f3),year(f3));
+
+</script>
+
+{%endblock%}

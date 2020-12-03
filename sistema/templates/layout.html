@@ -1,0 +1,319 @@
+{%load static%}
+<!doctype html>
+<html>
+    <head>
+        <title>SISTEMA CLINICA</title>
+
+        <!-- COMPONENTE BOOTSTRAP -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+        <!-- FIN COMPONENTE BOOTSTRAP -->
+
+        <!-- COMPONENTE SWEET ALERTS 2 -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+        <!-- FIN COMPONENTE SWEET ALERTS 2 -->
+
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="stylesheet" href="{% static 'style.css'%}">
+
+        <style>
+            * {
+              box-sizing: border-box;
+            }
+            
+            .flex-container {
+              display: flex;
+              flex-wrap: wrap;
+              font-size: 30px;
+              text-align: center;
+            }
+            
+            .flex-item-left {
+              background-color: #f1f1f1;
+              padding: 10px;
+              flex: 50%;
+            }
+            
+            .flex-item-right {
+              background-color: dodgerblue;
+              padding: 10px;
+              flex: 50%;
+            }
+
+            .row.highlight:hover > * {
+               background-color: #8fb7df;
+            }            
+            
+            /* Responsive layout - makes a one column-layout instead of a two-column layout */
+            @media (max-width: 800px) {
+              .flex-item-right, .flex-item-left {
+                flex: 100%;
+              }
+              .ocultarchico{
+                  display:none;
+              }
+              select{
+                max-width:150px;
+              }
+            }
+        </style>
+
+        <style>
+
+            h1{
+                font-family: Arial;
+                font-size: 14px;
+                color:blue;
+            }
+
+            .colorbg{
+                background-color: rgb(128, 177, 160)!important;
+            }
+
+            .contenedor_login{
+                border:1px solid black;
+                max-width:600px;
+                width:90%;
+                background-color:rgb(128, 177, 160);
+            }
+
+            .contenedor_menu{
+                display:flex;
+                flex-wrap:wrap;
+                
+            }
+            .contenedor_menu > div{
+                background-color:rgb(87, 104, 98);
+                margin:10px;
+                padding:10px;
+                width:32% ;
+                font-size:20px;
+                color:white;
+            }
+
+            @media(max-width:1200px){
+                .contenedor_menu > div{
+                    width:100% ;
+                }
+            }
+
+            .editar_turno:hover{
+                
+                color:rgb(197, 255, 216);
+            }
+
+            .diaturno{
+                width:50px;
+            }
+            .diaturno:hover{
+                color:black;
+            }
+
+            .tablaform{
+                font-family: Arial;
+                font-size:20px;
+                text-align:left;
+                padding:1em;
+                
+                width:100%;
+                max-width:800px;
+                border:1px solid black
+            }
+
+        </style>
+
+        <script language="javascript" >
+          function day(cual){
+              var fcual=cdate(cual);
+              return(fcual.getDate());
+          };
+          function month(cual){
+              var fcual=cdate(cual);
+              return(fcual.getMonth()+1);
+          };
+          function year(cual){
+              var fcual=cdate(cual);
+              return(fcual.getFullYear());
+          };
+          function cdate(cual){
+              if(instr(cual,"/")!=0){
+                  valores=js_split(cual,"/");
+              }else{
+                  valores=js_split(cual,"-");
+              };
+              if(len(valores[0])==4){
+                  viejafecha=new Date(valores[1] + "/" + valores[2] + "/" + valores[0]);
+              }else{
+                  viejafecha=new Date(valores[1] + "/" + valores[0] + "/" + valores[2]);
+              };
+              exfecha=new Date(viejafecha);
+
+              return(exfecha);
+          };
+          function replace(donde,que,porque){
+              return(donde.split(que).join(porque));
+          };
+          function int(cual){
+              return Math.floor(cual);
+          };
+          function round(cual,que){
+              return Math.round(cual*Math.pow(10,que))/Math.pow(10,que);
+          };
+          function strzero(que,nume,deci){
+              mynume=int(que);
+              mydeci=Math.floor((que-mynume)*Math.pow(10,deci));
+              mynume=right("000000000000000000000000000000000000000000000000000000000000000000000000000000"+mynume,nume);
+              if(deci==0){
+                  mydeci="";
+              }else{
+                  mydeci="."+mydeci;
+              };
+              return(mynume+""+mydeci);
+          };
+          function trim(cual){
+              return(cual.replace(/^\s+|\s+$/gm,''));
+          };
+
+          function left(str, n){
+              if (n <= 0){
+                      return "";
+              }else {
+                  if (n > String(str).length){
+                          return str;
+                      }else{        
+                      return String(str).substring(0,n);
+                  };
+              };
+          };
+          function right(str, n){
+              if (n <= 0){
+                      return "";
+              }else {
+                  if (n > String(str).length){
+                          return str;
+                      }else{        
+                      var iLen = String(str).length;
+                      return String(str).substring(iLen, iLen - n);
+                  };
+              };
+          };
+
+          function len(que){
+              return(que.length);
+          };
+          function instr(cade,que){
+              if(cade.indexOf(que)==false){
+                  return(0);
+              }else{
+                  return(cade.indexOf(que)+1);
+              };
+          };
+        function js_split(que,como){
+          return que.split(como);
+        };
+          function dateadd(que,cuanto,cual){
+              if(instr(cual,"/")!=0){
+                  valores=js_split(cual,"/");
+              }else{
+                  valores=js_split(cual,"-");
+              };
+              if(len(valores[0])==4){
+                  viejafecha=new Date(valores[1] + "/" + valores[2] + "/" + valores[0]);
+              }else{
+                  viejafecha=new Date(valores[1] + "/" + valores[0] + "/" + valores[2]);
+              };
+              exfecha=new Date(viejafecha);
+              switch(que){
+                  case "d":
+                      viejafecha.setDate(viejafecha.getDate()+cuanto); 
+                      break;
+                  case "m":
+                      viejafecha.setMonth(viejafecha.getMonth()+cuanto);
+                      if(exfecha.getDate()>viejafecha.getDate()){
+                          viejafecha.setDate(exfecha.getDate()-viejafecha.getDate());
+                          viejafecha.setMonth(viejafecha.getMonth()-1);
+                      };
+                      break;
+                  case "y":
+                      viejafecha.setFullYear(viejafecha.getFullYear()+cuanto); 
+                      break;
+                  default:
+                      break;
+              }
+              nuevafecha=strzero(viejafecha.getDate(),2,0) + "/" + strzero(viejafecha.getMonth()+1,2,0) + "/" + strzero(viejafecha.getFullYear(),4,0); 
+              return(nuevafecha);
+          };
+          function cdbl(que){
+            return(que*1);
+          };
+          function okdec(que){
+            return(replace(que,",",".")*1);
+          };
+
+          function replace(donde,que,porque){
+            return donde.toString().split(que).join(porque);
+          };
+
+
+        </script>
+
+
+    </head>
+    
+    <body>
+        <div class="pos-f-t">
+            <div class="collapse" id="navbarToggleExternalContent">
+              <div class="bg-dark p-4">
+                <h5 class="text-white h4">Usuario</h5>
+                <span class="text-muted">{{ request.user.last_name }} {{ request.user.first_name }} ({{ request.user.username }})</span>
+              </div>
+            </div>
+            <nav class="navbar navbar-dark bg-dark">
+              <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+              {% if usuario %}
+                <font style="color:white;font-size: 14px;">{{ request.user.last_name }} {{ request.user.first_name }}</font>
+              {% endif %}
+              <div class="panel-heading"> 
+              <ul class="nav nav-pills">
+                  <li role=presentation class="nav-item">
+                    <a href="{% url 'logout'%}" class="btn btn-success btn-block" style="color:black;">Salir</a>
+                  </li>
+              </ul>
+              </div>
+            </nav>
+        </div>
+
+        {%block body%}
+        {%endblock%}
+
+    </body>
+    <script language="javascript">
+      document.addEventListener('DOMContentLoaded', function() {
+        var x = document.querySelectorAll("input");
+        var i;
+        for (i = 0; i < x.length; i++) {
+          if(x[i].name!="nombreusuario" && x[i].name!="password" && x[i].value!="Acceder" && x[i].name!="fec1" && x[i].name!="fec2" && x[i].name!="acc" ){
+            x[i].classList.add('form-control');
+          }
+        }
+        
+        var x = document.querySelectorAll("select");
+        var i;
+        for (i = 0; i < x.length; i++) {
+            x[i].classList.add('form-control');
+        }
+
+        var x = document.querySelectorAll("textarea");
+        var i;
+        for (i = 0; i < x.length; i++) {
+          x[i].classList.add('form-control');
+        }
+      });
+    
+    </script>
+</html>

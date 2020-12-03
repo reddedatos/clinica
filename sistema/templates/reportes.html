@@ -1,0 +1,92 @@
+{%extends "layout.html"%}
+
+{% block body %}
+<script language="JavaScript">
+    function doreporte(){
+        var accion="";
+        if(document.querySelector("#accion1").checked){
+            accion="REPORTE1";
+        };
+        if(document.querySelector("#accion2").checked){
+            accion="REPORTE2";
+        };
+        if(document.querySelector("#accion3").checked){
+            accion="REPORTE3";
+        };
+        if(document.querySelector("#accion4").checked){
+            accion="REPORTE4";
+        };
+        if(document.querySelector("#accion5").checked){
+            accion="REPORTE5";
+        };
+
+        if(accion==""){
+            Swal.fire({
+                        title:"Debe especificar el tipo de reporte",
+                        icon:'error'
+                    })
+        }else{
+            document.querySelector("#accion").value=accion;
+            document.querySelector("#frm").submit();
+        }
+    }
+</script>
+
+<div align=center  class="flex-container" style="font-size:20px">
+    <div class="flex-item-left" align=left  >
+        <button class="btn btn-success" onclick="javascript:window.location='inicio'">VOLVER AL INICIO</button><br>
+        {% if reporte1 %}
+            Pacientes que asistieron entre {{ fec1 }} y {{ fec2 }}
+        {% endif %}
+        {% if reporte2 %}
+            Pacientes que no asistieron entre {{ fec1 }} y {{ fec2 }}
+        {% endif %}
+        {% if reporte3 %}
+            Pacientes que hicieron al menos 1 pedido entre {{ fec1 }} y {{ fec2 }}
+        {% endif %}
+        {% if reporte4 %}
+            Productos mas vendidos entre {{ fec1 }} y {{ fec2 }}
+        {% endif %}
+        {% if reporte5 %}
+            Ventas todales por vendedor entre {{ fec1 }} y {{ fec2 }}
+        {% endif %}
+        <hr style="border:1px solid grey">
+        {% if reporte1 or reporte2 or reporte3 or reporte4 %}
+            {% for nombre,veces in datos %}
+                {{ nombre }} / {{veces}} veces<br>
+            {% endfor %}
+            <hr style="border:1px solid grey">
+            {{ cantidad }} items
+        {% endif %}
+        {% if reporte5 %}
+            {% for nombre,importe in datos %}
+                {{ nombre }} / $ {{importe}} <br>
+            {% endfor %}
+            <hr style="border:1px solid grey">
+            {{ cantidad }} items , total $ {{ total }}
+        {% endif %}
+    </div>
+    <div class="flex-item-right" style="font-size:16px;text-align:left;">
+        <form action="{% url 'reportes' %}" method=post name=frm id=frm>
+            {% csrf_token %}
+            <input type=hidden name=accion id=accion value="">
+            <input type=hidden name=tipo   id=tipo   value="">
+            Tipo de reporte:<br><br>
+            <input {% if reporte1 %}checked{% endif %} type=radio name=acc id=accion1 value="REPORTE1">
+            Reporte de pacientes que asistieron <br><br>
+            <input {% if reporte2 %}checked{% endif %} type=radio name=acc id=accion2 value="REPORTE2">
+            Reporte de pacientes que no asistieron <br><br>
+            <input {% if reporte3 %}checked{% endif %} type=radio name=acc id=accion3 value="REPORTE3">
+            Reporte de pacientes que hicieron al menos 1 pedido <br><br>
+            <input {% if reporte4 %}checked{% endif %} type=radio name=acc id=accion4 value="REPORTE4">
+            Productos mas vendidos<br><br>
+            <input {% if reporte5 %}checked{% endif %} type=radio name=acc id=accion5 value="REPORTE5">
+            Ventas totales por vendedor<br><br>
+            Entre fechas:<br>
+            <input type=text size=10 name=fec1 style="width:120px" value="{{ fec1 }}"> y <input type=text value="{{ fec2 }}" size=10 name=fec2 style="width:120px"><br><br>
+            <button type=button class="btn btn-success" onclick="javascript:doreporte();">CONSULTAR</button> &nbsp;&nbsp;&nbsp;
+        </form>
+    </div>
+
+</div>
+{% endblock %}
